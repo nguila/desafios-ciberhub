@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CiberHub PRO | Oficial 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #10b981; --bg-dark: #020617; --card-bg: #0f172a; --card-border: #1e293b; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); color: #f8fafc; }
+        
+        .score-panel { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 850px; margin: 0 auto 40px auto; }
+        .stat-item { display: flex; align-items: center; gap: 12px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .bg-trophy { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .bg-flame { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        
+        .module-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .module-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 12px 30px rgba(16, 185, 129, 0.15); }
+        .completed-card { border: 2px solid var(--primary) !important; background: linear-gradient(145deg, #0f172a 0%, #064e3b 100%); }
+
+        .modal-header-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 24px; }
+        .library-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .library-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; transition: 0.2s; text-decoration: none; }
+        .library-item:hover { border-color: var(--primary); background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+        .quiz-option { display: flex; align-items: center; width: 100%; padding: 14px; background: #1e293b; border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; text-align: left; }
+        .quiz-letter { width: 34px; height: 34px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px; font-weight: 800; color: #94a3b8; font-size: 13px; }
+        .correct { background: #064e3b !important; border-color: #10b981 !important; }
+        .wrong { background: #7f1d1d !important; border-color: #ef4444 !important; }
+
+        .modal-blur { background: rgba(2, 6, 23, 0.98); backdrop-filter: blur(15px); }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div id="mainDashboard" class="max-w-7xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-5xl md:text-6xl font-black text-white italic tracking-tighter uppercase mb-2">Desafio <span class="text-teal-500 italic">CIBERHUB</span></h1>
+            <p class="text-slate-500 font-bold uppercase text-[10px] tracking-[0.4em] italic mb-10"> Algumas dicas, ferramentas e boas práticas para proteger a sua pegada digital</p>
+            
+            <div class="score-panel flex-wrap md:flex-nowrap">
+                <div class="stat-item">
+                    <div class="stat-icon bg-trophy">🏆</div>
+                    <div class="text-left">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Pontos</p>
+                        <p id="totalPoints" class="text-2xl font-black text-white">0</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">🛡️</div>
+                    <div class="text-left">
+                        <p id="userLevel" class="text-sm font-black text-emerald-400 italic uppercase">Aprendiz</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon bg-flame">🔥</div>
+                    <div class="text-left">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Quizzes</p>
+                        <p class="text-xl font-black text-white"><span id="doneQuizzes">0</span>/31</p>
+                    </div>
+                </div>
+                <button onclick="shareProgress()" class="bg-white text-emerald-600 px-6 py-2.5 rounded-xl font-black text-xs shadow-lg active:scale-95 transition">Partilhar</button>
+            </div>
+        </header>
+
+        <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-24"></div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 z-50 hidden modal-blur items-center justify-center overflow-y-auto p-4">
+        <div class="bg-[#0f172a] w-full max-w-2xl md:rounded-[40px] overflow-hidden flex flex-col shadow-2xl">
+            <div class="modal-header-gradient relative">
+                <button onclick="closeModal()" class="absolute top-6 right-6 text-white/40 hover:text-white">✕</button>
+                <div class="flex items-center gap-5">
+                    <div id="mIconBox" class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl shadow-xl"></div>
+                    <div>
+                        <p id="mDayTag" class="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1"></p>
+                        <h2 id="mTitle" class="text-2xl font-black text-white leading-tight"></h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-7 overflow-y-auto max-h-[75vh]">
+                <div id="mTipBox" class="p-4 bg-emerald-500/10 border-l-4 border-emerald-500 rounded-r-xl">
+                    <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">💡 Dica Rápida</p>
+                    <p id="mTip" class="text-sm font-semibold text-slate-100"></p>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">📚 Biblioteca de Conhecimento</p>
+                    <div id="libraryContent" class="library-grid"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">🛡️ Resumo Técnico</p>
+                    <p id="mArticle" class="text-sm text-slate-400 leading-relaxed"></p>
+                </div>
+
+                <div class="pt-6 border-t border-slate-800">
+                    <p class="text-[10px] font-black text-slate-500 uppercase mb-4">❓ Desafio do Dia</p>
+                    <p id="mQuest" class="text-base font-bold text-white mb-6"></p>
+                    <div id="mOpts" class="space-y-3"></div>
+                </div>
+
+                <button id="markBtn" onclick="saveProgress()" class="hidden w-full py-4 bg-emerald-600 rounded-xl font-black text-white uppercase shadow-lg">Validar Etapa ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const titles = [
+            "Compras Online Seguras", "Cópia na Nuvem (\"Cloud\")", "Gestão de Senhas", "Engenharia Social", 
+            "Wi-Fi Público", "Cyberbullying", "Redes Sociais", "Deepfakes IA", "Ransomware", 
+            "Autenticação MFA", "Smart Devices", "Privacidade Cookies", "Modo Incógnito", 
+            "Metadados EXIF", "VPN Segura", "Juice Jacking", "Sharenting", "Segurança PIN", 
+            "Pegada Digital", "Supply Chain", "Typosquatting", "Backup Offline", "RFID Spoofing", 
+            "DNS Over HTTPS", "Engenharia Social", "Patch Management", "App Permissions", 
+            "Shoulder Surfing", "Dark Web Monitoring", "Secure API", "Zero Trust"
+        ];
+
+        const icons = ["🛒", "☁️", "🔑", "🎣", "📶", "🤝", "📸", "🎭", "🛡️", "🔐", "🏠", "🍪", "👤", "📍", "🌐", "⚡", "👨‍👩‍👧", "🔢", "👣", "⛓️", "🔍", "💾", "📡", "🌍", "🤝", "🆙", "📱", "👤", "🌑", "🔌", "🔒"];
+
+        // Links de artigos atualizados por tema
+        const articleLinks = [
+            "https://www.internetsegura.pt/compras-online", "https://www.cncs.gov.pt/recursos/boas-praticas/backup/", 
+            "https://www.cncs.gov.pt/recursos/boas-praticas/passwords/", "https://www.cncs.gov.pt/recursos/boas-praticas/phishing/",
+            "https://www.internetsegura.pt/wi-fi-publico", "https://www.internetsegura.pt/cyberbullying",
+            "https://www.cncs.gov.pt/recursos/boas-praticas/redes-sociais/", "https://www.enisa.europa.eu/topics/anti-phishing/deepfakes",
+            "https://www.cncs.gov.pt/recursos/boas-praticas/ransomware/", "https://www.cncs.gov.pt/recursos/boas-praticas/autenticacao-multifator/"
+            // Lógica de fallback para os restantes
+        ];
+
+        const db = titles.map((name, i) => ({
+            t: name, i: icons[i],
+            q: `Qual a melhor prática de ciber-higiene para ${name}?`,
+            o: ["Ignorar alertas", "Seguir normas do CNCS", "Partilhar acessos", "Desativar firewall"], a: 1,
+            tip: "A segurança digital exige vigilância constante.",
+            article: `Módulo sobre ${name} alinhado com o Centro Nacional de Cibersegurança.`,
+            lib: [
+                {n:"Artigo Atualizado", t:"📄 Artigo", l: articleLinks[i] || "https://www.cncs.gov.pt/recursos/artigos/"},
+                {n:"Vídeo Educativo", t:"📺 YouTube", l:"https://www.youtube.com/@InternetSeguraPT"},
+                {n:"Guia Oficial", t:"🛡️ CNCS", l:"https://www.cncs.gov.pt"},
+                {n:"Avisos Ativos", t:"⚠️ Alertas", l:"https://www.cncs.gov.pt/alertas/"}
+            ]
+        }));
+
+        let currentIdx = null;
+
+        function init() {
+            const grid = document.getElementById('grid');
+            let done = 0;
+            db.forEach((item, i) => {
+                const day = i + 1;
+                const isDone = localStorage.getItem('vMasterArtigo-done-' + day);
+                if(isDone) done++;
+                const card = document.createElement('div');
+                card.className = `module-card p-6 flex flex-col ${isDone ? 'completed-card' : ''}`;
+                card.onclick = () => openModal(i);
+                card.innerHTML = `<div class="text-4xl mb-4">${item.i}</div><p class="text-[9px] font-black text-emerald-500 uppercase italic mb-1">Dia ${day.toString().padStart(2, '0')}</p><h3 class="text-white font-bold mb-6 text-sm uppercase">${item.t}</h3><button class="mt-auto py-3 bg-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest">Jogar</button>`;
+                grid.appendChild(card);
+            });
+            document.getElementById('totalPoints').innerText = done * 150;
+            document.getElementById('doneQuizzes').innerText = done;
+            const levels = ["Aprendiz", "Guarda Digital", "Mestre Ciber", "Elite de Defesa"];
+            document.getElementById('userLevel').innerText = levels[Math.floor(done/8)] || levels[3];
+        }
+
+        function openModal(i) {
+            const item = db[i]; currentIdx = i;
+            document.getElementById('mIconBox').innerText = item.i;
+            document.getElementById('mDayTag').innerText = `Dia ${(i+1).toString().padStart(2, '0')} • Conhecimento`;
+            document.getElementById('mTitle').innerText = item.t;
+            document.getElementById('mTip').innerText = item.tip;
+            document.getElementById('mArticle').innerText = item.article;
+            document.getElementById('mQuest').innerText = item.q;
+            document.getElementById('libraryContent').innerHTML = item.lib.map(l => `
+                <a href="${l.l}" target="_blank" class="library-item">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">${l.t}</p>
+                    <p class="text-[11px] text-white font-extrabold leading-tight">${l.n}</p>
+                </a>
+            `).join('');
+            const opts = document.getElementById('mOpts'); opts.innerHTML = '';
+            item.o.forEach((o, idx) => {
+                const b = document.createElement('button'); b.className = 'quiz-option';
+                b.innerHTML = `<div class="quiz-letter">${String.fromCharCode(65 + idx)}</div> <div class="text-[13px] font-bold text-slate-200">${o}</div>`;
+                b.onclick = () => { if(idx === item.a) { b.classList.add('correct'); document.getElementById('markBtn').classList.remove('hidden'); } else { b.classList.add('wrong'); } };
+                opts.appendChild(b);
+            });
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function shareProgress() {
+            const text = `Ganhei ${document.getElementById('totalPoints').innerText} pontos na Academia CiberHub! 🛡️🚀`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " " + window.location.href)}`, '_blank');
+        }
+
+        function saveProgress() { localStorage.setItem('vMasterArtigo-done-' + (currentIdx + 1), 'true'); location.reload(); }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+        window.onload = init;
+    </script>
+</body>
+</html>
